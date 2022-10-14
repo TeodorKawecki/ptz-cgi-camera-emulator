@@ -8,6 +8,8 @@ import (
 	"github.com/oliamb/cutter"
 )
 
+const fileLocation = "/home/teodorek/Github/camera-emulator/lena.jpg"
+
 type CamParams struct {
 	xAxis int
 	yAxis int
@@ -15,25 +17,49 @@ type CamParams struct {
 	zoom int
 }
 
-func FetchFrame() (image.Image, error) {
-	params := CamParams{
+var (
+	camParams CamParams
+)
+
+func init() {
+	camParams = CamParams{
 		xAxis: 10,
 		yAxis: 10,
 		zoom:  0,
 	}
+}
 
-	f, err := os.Open("/home/teodorek/Github/camera-emulator/lena.jpg")
+func FetchFrame() (image.Image, error) {
+	img, err := ReadImage()
+
+	croppedImg, err := cutter.Crop(img, cutter.Config{
+		Width:  img.Bounds().Dx() - camParams.zoom,
+		Height: img.Bounds().Dy() - camParams.zoom,
+		Anchor: image.Point{camParams.xAxis, camParams.yAxis},
+	})
+
+	return croppedImg, err
+}
+
+func ReadImage() (image.Image, error) {
+	f, err := os.Open(fileLocation)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
 	img, _, err := image.Decode(f)
 
-	croppedImg, err := cutter.Crop(img, cutter.Config{
-		Width:  img.Bounds().Dx() - params.zoom,
-		Height: img.Bounds().Dy() - params.zoom,
-		Anchor: image.Point{params.xAxis, params.yAxis},
-	})
+	return img, err
+}
 
-	return croppedImg, err
+func SetXAxis(xAxis int) {
+	camParams.xAxis = xAxis
+}
+
+func SetYAxis(yAxis int) {
+	camParams.xAxis = yAxis
+}
+
+func SetZoom(zoom int) {
+	camParams.zoom = zoom
 }

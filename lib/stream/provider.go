@@ -2,10 +2,17 @@
 package streamProvider
 
 import (
+	"fmt"
 	"image"
+	"image/color"
+	"image/draw"
 	"math"
 	"os"
 	"time"
+
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/math/fixed"
 
 	"github.com/oliamb/cutter"
 )
@@ -16,7 +23,7 @@ type CurrentPosition struct {
 	Pan  float64
 	Tilt float64
 
-	zoom int
+	Zoom int
 }
 
 type TargetPosition struct {
@@ -35,7 +42,7 @@ func init() {
 	currentPosition = CurrentPosition{
 		Pan:  600,
 		Tilt: 411,
-		zoom: 200,
+		Zoom: 200,
 	}
 }
 
@@ -43,12 +50,16 @@ func FetchFrame() (image.Image, error) {
 	img, err := ReadImage()
 
 	croppedImg, err := cutter.Crop(img, cutter.Config{
-		Width:  img.Bounds().Dx() - currentPosition.zoom,
-		Height: img.Bounds().Dy() - currentPosition.zoom,
+		Width:  img.Bounds().Dx() / 2,
+		Height: img.Bounds().Dy() / 2,
 		Anchor: image.Point{int(currentPosition.Pan), int(currentPosition.Tilt)},
 	})
 
-	return croppedImg, err
+	imageRgba := imageToRGBA(croppedImg)
+
+	addLabel(imageRgba)
+
+	return imageRgba, err
 }
 
 func ReadImage() (image.Image, error) {
@@ -88,4 +99,44 @@ func calculateCurrentPosition() {
 	} else if math.Abs(yDiff) > 0.05 {
 		currentPosition.Tilt += 0.05
 	}
+}
+
+func imageToRGBA(src image.Image) *image.RGBA {
+
+	// No conversion needed if image is an *image.RGBA.
+	if dst, ok := src.(*image.RGBA); ok {
+		return dst
+	}
+
+	// Use the image/draw package to convert to *image.RGBA.
+	b := src.Bounds()
+	dst := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+	draw.Draw(dst, dst.Bounds(), src, b.Min, draw.Src)
+	return dst
+}
+
+func addLabel(img *image.RGBA) {
+	col := color.RGBA{200, 100, 0, 255}
+
+	y := img.Rect.Size().Y - 50
+	x := 10
+
+	point := fixed.Point26_6{fixed.I(x), fixed.I(y)}
+
+	d := &font.Drawer{
+		Dst:  img,
+		Src:  image.NewUniform(col),
+		Face: basicfont.Face7x13,
+		Dot:  point,
+	}
+
+	panLabel := fmt.Sprintf("Pan : %d", int(currentPosition.Pan))
+	tiltLabel := fmt.Sprintf("Tilt: %d", int(currentPosition.Tilt))
+	zoomLabel := fmt.Sprintf("Zoom: %d", int(currentPosition.Zoom))
+
+	d.DrawString(panLabel)
+	d.Dot = fixed.Point26_6{fixed.I(x), fixed.I(y + 10)}
+	d.DrawString(tiltLabel)
+	d.Dot = fixed.Point26_6{fixed.I(x), fixed.I(y + 20)}
+	d.DrawString(zoomLabel)
 }

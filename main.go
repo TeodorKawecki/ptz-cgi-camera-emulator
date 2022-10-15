@@ -21,8 +21,8 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/stream", stream)
 
+	mux.Handle("/stream", stream)
 	mux.HandleFunc("/setPreset", func(w http.ResponseWriter, r *http.Request) {
 		targetPosition := &models.TargetPosition{}
 		handlers.HandleSetPreset(w, r, targetPosition)

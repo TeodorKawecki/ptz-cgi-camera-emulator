@@ -6,6 +6,8 @@ import (
 	"math"
 	"time"
 
+	"github.com/nfnt/resize"
+
 	"github.com/oliamb/cutter"
 )
 
@@ -25,17 +27,13 @@ func init() {
 func FetchFrame() (image.Image, error) {
 	img, err := readFrame()
 
-	croppedImg, err := cutter.Crop(img, cutter.Config{
-		Width:  img.Bounds().Dx() / 2,
-		Height: img.Bounds().Dy() / 2,
-		Anchor: image.Point{int(currentPosition.Pan), int(currentPosition.Tilt)},
-	})
+	img, err = zoomImage(&img)
+	img, err = cropImage(&img)
+	imgRgba := imageToRGBA(img)
 
-	imageRgba := imageToRGBA(croppedImg)
+	addOverlay(imgRgba)
 
-	addOverlay(imageRgba)
-
-	return imageRgba, err
+	return imgRgba, err
 }
 
 func SetTargetPosition(tp *models.TargetPosition) {
@@ -47,6 +45,26 @@ func UpdatePosition() {
 		calculateCurrentPosition()
 		time.Sleep(100 * time.Microsecond)
 	}
+}
+
+func cropImage(img *image.Image) (image.Image, error) {
+	croppedImg, err := cutter.Crop(*img, cutter.Config{
+		Width:  1280,
+		Height: 720,
+		Anchor: image.Point{int(currentPosition.Pan), int(currentPosition.Tilt)},
+	})
+
+	return croppedImg, err
+}
+
+func zoomImage(img *image.Image) (image.Image, error) {
+	//dst := image.NewRGBA(image.Rect(0, 0, (*img).Bounds().Max.X/2, (*img).Bounds().Max.Y/2))
+
+	//draw.NearestNeighbor.Scale(dst, dst.Rect, *img, (*img).Bounds(), draw.Over, nil)
+
+	m := resize.Resize(1000, 0, *img, resize.Lanczos3)
+
+	return m, nil
 }
 
 func calculateCurrentPosition() {

@@ -13,4 +13,13 @@ curl --header "Content-Type: application/json" \
   http://localhost:8080/setPreset
 ```
 
+# Docker
+## Build image
+```
+docker build . -t camera-emulator
+```
+## Run Docker container
+```
+docker run -p 8080:8080 -d camera-emulator
+```
 

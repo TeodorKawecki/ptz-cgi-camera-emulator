@@ -1,8 +1,9 @@
 package main
 
 import (
-	httpHandler "camera-emulator/lib/http"
-	streamProvider "camera-emulator/lib/stream"
+	handlers "camera-emulator/handlers"
+	lib "camera-emulator/lib"
+	models "camera-emulator/models"
 	"image"
 	"image/jpeg"
 	"log"
@@ -10,11 +11,11 @@ import (
 )
 
 func main() {
-	go streamProvider.UpdatePosition()
+	go lib.UpdatePosition()
 
-	stream := httpHandler.Handler{
+	stream := handlers.Handler{
 		Next: func() (image.Image, error) {
-			return streamProvider.FetchFrame()
+			return lib.FetchFrame()
 		},
 		Options: &jpeg.Options{Quality: 80},
 	}
@@ -23,9 +24,9 @@ func main() {
 	mux.Handle("/stream", stream)
 
 	mux.HandleFunc("/setPreset", func(w http.ResponseWriter, r *http.Request) {
-		targetPosition := &streamProvider.TargetPosition{}
-		httpHandler.HandleSetPreset(w, r, targetPosition)
-		streamProvider.SetTargetPosition(targetPosition)
+		targetPosition := &models.TargetPosition{}
+		handlers.HandleSetPreset(w, r, targetPosition)
+		lib.SetTargetPosition(targetPosition)
 	})
 
 	log.Fatal(http.ListenAndServe(":8080", mux))

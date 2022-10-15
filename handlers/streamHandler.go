@@ -1,9 +1,6 @@
-package httpHandler
+package handlers
 
 import (
-	streamProvider "camera-emulator/lib/stream"
-	"encoding/json"
-	"fmt"
 	"image"
 	"image/jpeg"
 	"io"
@@ -39,18 +36,4 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-}
-
-func HandleSetPreset(w http.ResponseWriter, r *http.Request, tp *streamProvider.TargetPosition) {
-	if r.Method != "POST" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-	}
-
-	err := json.NewDecoder(r.Body).Decode(tp)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	fmt.Print(tp)
 }

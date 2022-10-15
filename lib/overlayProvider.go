@@ -6,12 +6,12 @@ import (
 	"image/color"
 
 	"golang.org/x/image/font"
-	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/font/inconsolata"
 	"golang.org/x/image/math/fixed"
 )
 
 func addOverlay(img *image.RGBA) {
-	col := color.RGBA{200, 100, 0, 255}
+	col := color.RGBA{255, 0, 0, 255}
 
 	y := img.Rect.Size().Y - 50
 	x := 10
@@ -21,7 +21,7 @@ func addOverlay(img *image.RGBA) {
 	d := &font.Drawer{
 		Dst:  img,
 		Src:  image.NewUniform(col),
-		Face: basicfont.Face7x13,
+		Face: inconsolata.Bold8x16,
 		Dot:  point,
 	}
 

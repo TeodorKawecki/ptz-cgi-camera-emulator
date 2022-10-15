@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/nfnt/resize"
-
 	"github.com/oliamb/cutter"
 )
 

@@ -4,5 +4,5 @@ type CurrentPosition struct {
 	Pan  float64
 	Tilt float64
 
-	Zoom int
+	Zoom float64
 }

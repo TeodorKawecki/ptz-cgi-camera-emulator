@@ -10,6 +10,8 @@ import (
 )
 
 func main() {
+	go streamProvider.UpdatePosition()
+
 	stream := httpHandler.Handler{
 		Next: func() (image.Image, error) {
 			return streamProvider.FetchFrame()
@@ -19,5 +21,12 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/stream", stream)
+
+	mux.HandleFunc("/setPreset", func(w http.ResponseWriter, r *http.Request) {
+		targetPosition := &streamProvider.TargetPosition{}
+		httpHandler.HandleSetPreset(w, r, targetPosition)
+		streamProvider.SetTargetPosition(targetPosition)
+	})
+
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }

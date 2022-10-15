@@ -3,29 +3,39 @@ package streamProvider
 
 import (
 	"image"
+	"math"
 	"os"
+	"time"
 
 	"github.com/oliamb/cutter"
 )
 
 const fileLocation = "/home/teodorek/Github/camera-emulator/lena.jpg"
 
-type CamParams struct {
-	xAxis int
-	yAxis int
+type CurrentPosition struct {
+	Pan  float64
+	Tilt float64
 
 	zoom int
 }
 
+type TargetPosition struct {
+	Pan  int
+	Tilt int
+
+	Zoom int
+}
+
 var (
-	camParams CamParams
+	currentPosition CurrentPosition
+	targetPosition  TargetPosition
 )
 
 func init() {
-	camParams = CamParams{
-		xAxis: 10,
-		yAxis: 10,
-		zoom:  0,
+	currentPosition = CurrentPosition{
+		Pan:  600,
+		Tilt: 411,
+		zoom: 200,
 	}
 }
 
@@ -33,9 +43,9 @@ func FetchFrame() (image.Image, error) {
 	img, err := ReadImage()
 
 	croppedImg, err := cutter.Crop(img, cutter.Config{
-		Width:  img.Bounds().Dx() - camParams.zoom,
-		Height: img.Bounds().Dy() - camParams.zoom,
-		Anchor: image.Point{camParams.xAxis, camParams.yAxis},
+		Width:  img.Bounds().Dx() - currentPosition.zoom,
+		Height: img.Bounds().Dy() - currentPosition.zoom,
+		Anchor: image.Point{int(currentPosition.Pan), int(currentPosition.Tilt)},
 	})
 
 	return croppedImg, err
@@ -52,14 +62,30 @@ func ReadImage() (image.Image, error) {
 	return img, err
 }
 
-func SetXAxis(xAxis int) {
-	camParams.xAxis = xAxis
+func SetTargetPosition(tp *TargetPosition) {
+	targetPosition = *tp
 }
 
-func SetYAxis(yAxis int) {
-	camParams.xAxis = yAxis
+func UpdatePosition() {
+	for {
+		calculateCurrentPosition()
+		time.Sleep(100 * time.Microsecond)
+	}
 }
 
-func SetZoom(zoom int) {
-	camParams.zoom = zoom
+func calculateCurrentPosition() {
+	xDiff := float64(targetPosition.Pan) - currentPosition.Pan
+	yDiff := float64(targetPosition.Tilt) - currentPosition.Tilt
+
+	if xDiff < 0 && math.Abs(xDiff) > 0.05 {
+		currentPosition.Pan -= 0.05
+	} else if math.Abs(xDiff) > 0.05 {
+		currentPosition.Pan += 0.05
+	}
+
+	if yDiff < 0 && math.Abs(yDiff) > 0.05 {
+		currentPosition.Tilt -= 0.05
+	} else if math.Abs(yDiff) > 0.05 {
+		currentPosition.Tilt += 0.05
+	}
 }

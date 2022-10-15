@@ -1,20 +1,15 @@
-// Package mjpeg implements mjpeg streaming handlers with a simple API.
 package httpHandler
 
 import (
-	"errors"
+	streamProvider "camera-emulator/lib/stream"
+	"encoding/json"
+	"fmt"
 	"image"
 	"image/jpeg"
 	"io"
 	"net/http"
 )
 
-// ErrorEndOfStream signals the end of the Motion JPEG frames from a MJPEG
-// stream
-var ErrorEndOfStream = errors.New("End of Motion JPEG Stream")
-
-// A Handler is an http.Handler that streams mjpeg using an image stream. Encoding
-// quality can be controlled using the Options parameters.
 type Handler struct {
 	Next    func() (image.Image, error)
 	Options *jpeg.Options
@@ -44,4 +39,18 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+}
+
+func HandleSetPreset(w http.ResponseWriter, r *http.Request, tp *streamProvider.TargetPosition) {
+	if r.Method != "POST" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+	}
+
+	err := json.NewDecoder(r.Body).Decode(tp)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Print(tp)
 }

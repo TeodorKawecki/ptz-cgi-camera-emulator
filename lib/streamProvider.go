@@ -20,7 +20,6 @@ func readFrame() (image.Image, error) {
 }
 
 func imageToRGBA(src image.Image) *image.RGBA {
-
 	if dst, ok := src.(*image.RGBA); ok {
 		return dst
 	}

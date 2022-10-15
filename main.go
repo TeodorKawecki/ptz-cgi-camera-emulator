@@ -17,7 +17,7 @@ func main() {
 		Next: func() (image.Image, error) {
 			return lib.FetchFrame()
 		},
-		Options: &jpeg.Options{Quality: 80},
+		Options: &jpeg.Options{Quality: 100},
 	}
 
 	mux := http.NewServeMux()

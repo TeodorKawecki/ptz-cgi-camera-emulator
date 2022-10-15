@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-const fileLocation = "/home/teodorek/Github/camera-emulator/lena.jpg"
+const fileLocation = "./media/lena.jpg"
 
 func readFrame() (image.Image, error) {
 	f, err := os.Open(fileLocation)
